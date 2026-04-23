@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find YourSHelf</title>
+<link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+<style>
+:root {
+    /* The "Midnight" Palette */
+    --bg-dark: #090a0c;
+    --card-bg: #14171c;
+    --modal-bg: #0a0b0d; /* Even darker for pop-ups */
+    --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    --text-main: #f8fafc;
+    --text-dim: #94a3b8;
+    --radius: 20px;
+    --glass: rgba(255, 255, 255, 0.03);
+    --text-3: rgba(0, 0, 0, 0);
+    
+    /* Semantic Colors for Statuses */
+    --available-color: #4ade80;
+    --reserved-color: #fbbf24;
+    --loaned-color: #f87171;
+    --returned-color: #818cf8;
+
+    /* Original Button Colors (Kept as requested) */
+    --primary: #24175b; 
+    --secondary: #24175b; 
+    --danger: #510404; 
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-main);
+    overflow-x: hidden;
+}
+
+/* 1. PAGE-TO-PAGE TRANSITION LOGIC */
+.section {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.section.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header & Navigation Styling */
+header {
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+nav {
+    display: inline-flex;
+    gap: 8px;
+    background: var(--glass);
+    padding: 8px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+nav a.active {
+    background: var(--accent-gradient);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Main Layout & Grid */
+main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+/* 2. CARD MOVEMENT (Lift effect) */
+.book-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--glass);
+    text-align: center;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.book-card img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+/* Inputs & Buttons */
+input {
+    width: 100%;
+    padding: 14px;
+    margin: 10px 0;
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: white;
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+.btn:hover { opacity: 0.9; transform: scale(1.02); }
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-success { background: var(--secondary); color: white; margin-top: 10px; }
+.btn-danger { background: var(--danger); color: white; margin-top: 5px; }
+
+/* Status Badges */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.05);
+}
+
+.available { color: var(--available-color); border: 1px solid var(--available-color); }
+.reserved { color: var(--reserved-color); border: 1px solid var(--reserved-color); }
+.loaned { color: var(--loaned-color); border: 1px solid var(--loaned-color); }
+.returned { color: var(--returned-color); border: 1px solid var(--returned-color); }
+
+/* 3. POP-UP (MODAL) WINDOW - DARK THEME */
+#bookModal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); /* Dark overlay */
+    color: var(--text-3);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--modal-bg);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 40px;
+    border-radius: 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 50px rgba(0,0,0,1);
+    text-align: center;
+    position: relative;
+    animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    color: var(--text-dim);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Custom Scrollbar for the dark theme */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+#bookModal .modal-content {
+    color: #111; /* makes ALL text visible */
+}
+
+#modalTitle {
+    color: #0e1e3c;
+    margin-bottom: 10px;
+}
+
+#modalSummary {
+    color: #333;
+    line-height: 1.6;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+    <h1>BookShare</h1>
+    <nav>
+        <a href="#" class="active" data-sec="home">Browse</a>
+        <a href="#" data-sec="add">Add Book</a>
+        <a href="#" data-sec="profile">My Books</a>
+    </nav>
+</header>
+
+<button id="logoutBtn" class="btn btn-danger" style="display:none">Logout</button>
+<div id="userGreeting" style="margin-top:10px; font-weight:bold;"></div>
+
+<main>
+    <button id="loginBtn" class="btn btn-primary">Login with Google</button>
+
+    <!-- Browse -->
+    <section class="section active" id="home">
+        <input type="text" id="searchInput" placeholder="Search title, author...">
+        <div class="book-grid" id="bookGrid"></div>
+    </section>
+
+    <!-- Add Book -->
+    <section class="section" id="add">
+        <h2>List a New Book</h2>
+        <p>Enter ISBN to auto-fill, or type details manually.</p>
+        <input type="text" id="isbnInput" placeholder="Enter ISBN (e.g., 9780143127550)">
+        <button class="btn btn-primary" id="fetchBtn">Find Book Info</button>
+        <div id="apiLoader" class="loading"></div>
+
+        <div id="bookDetails" style="margin-top:20px; border-top: 1px solid #eee; padding-top: 20px;">
+            <input type="text" id="titleInput" placeholder="Book Title">
+            <input type="text" id="authorInput" placeholder="Author Name">
+            <input type="text" id="coverInput" placeholder="Cover URL (optional)">
+            <button class="btn btn-success" id="saveBtn">List This Book</button>
+        </div>
+    </section>
+
+    <!-- Profile -->
+    <section class="section" id="profile">
+        <h2>My Books</h2>
+        <div class="book-grid" id="myBooksGrid"></div>
+    </section>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+// --- Search Logic ---
+document.getElementById('searchInput').oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allBooks.filter(b => 
+        b.title.toLowerCase().includes(term) || 
+        b.author.toLowerCase().includes(term)
+    );
+    renderBooks(filtered);
+};
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAGm1vgLa62ZOvgxIU-04f6YH-NLdedCiY",
+  authDomain: "book-share-89d92.firebaseapp.com",
+  projectId: "book-share-89d92",
+  storageBucket: "book-share-89d92.appspot.com",
+  messagingSenderId: "509794300577",
+  appId: "1:509794300577:web:c36fc6c02ded3520f236e0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+let allBooks = [];
+
+// --- Auth ---
+document.getElementById('loginBtn').onclick = async () => {
+    try {
+        const result = await signInWithPopup(auth, provider);
+        currentUser = result.user;
+        alert(`Welcome, ${currentUser.displayName}!`);
+    } catch(e){ console.error(e); alert(e.message); }
+};
+
+document.getElementById('logoutBtn').onclick = async () => {
+    try { await signOut(auth); alert("You have logged out!"); } 
+    catch(e){ console.error(e); alert(e.message); }
+};
+
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if(user){
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        document.getElementById("userGreeting").innerText = `Hello, ${user.displayName}`;
+    } else {
+        document.getElementById("loginBtn").style.display = "inline-block";
+        document.getElementById("logoutBtn").style.display = "none";
+        document.getElementById("userGreeting").innerText = "";
+    }
+    renderBooks(allBooks);
+    renderMyBooks();
+});
+
+// --- Fetch OpenLibrary ---
+document.getElementById('fetchBtn').onclick = async () => {
+    const isbn = document.getElementById('isbnInput').value.trim();
+    if(!isbn) return alert("Enter ISBN!");
+    document.getElementById('apiLoader').style.display = "block";
+    try{
+        let url = `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`;
+        let res = await fetch(url);
+        let data = await res.json();
+        const info = data[`ISBN:${isbn}`];
+        if(info){
+            document.getElementById('titleInput').value = info.title || "";
+            document.getElementById('authorInput').value = info.authors ? info.authors[0].name : "";
+            document.getElementById('coverInput').value = info.cover ? info.cover.medium : "";
+            alert("Book Found!");
+        } else alert("ISBN not found. Enter manually.");
+    } catch(e){ console.error(e); alert("API Error. Enter manually."); }
+    document.getElementById('apiLoader').style.display = "none";
+};
+
+// --- Save Book ---
+document.getElementById('saveBtn').onclick = async () => {
+    if(!currentUser) return alert("Login first!");
+    const title = document.getElementById('titleInput').value.trim();
+    const author = document.getElementById('authorInput').value.trim();
+    const cover = document.getElementById('coverInput').value || "https://via.placeholder.com/150?text=No+Cover";
+    if(!title || !author) return alert("Title and author required!");
+    try{
+        await addDoc(collection(db,"books"), {
+            title, author, cover,
+            ownerId: currentUser.uid,
+            ownerName: currentUser.displayName,
+            status: "available",
+            borrowerId: "",
+            borrowerName: "",
+            timestamp: serverTimestamp()
+        });
+        alert("Book listed!");
+        document.getElementById('titleInput').value = "";
+        document.getElementById('authorInput').value = "";
+        document.getElementById('isbnInput').value = "";
+        document.getElementById('coverInput').value = "";
+    } catch(e){ console.error(e); alert("Error saving book."); }
+};
+
+// --- Real-time Books ---
+const bookGrid = document.getElementById('bookGrid');
+const myBooksGrid = document.getElementById('myBooksGrid');
+const booksQuery = query(collection(db,"books"), orderBy("timestamp","desc"));
+
+onSnapshot(booksQuery, snap => {
+    allBooks = [];
+    snap.forEach(docSnap => allBooks.push({id: docSnap.id, ...docSnap.data()}));
+    renderBooks(allBooks);
+    renderMyBooks();
+});
+
+// --- Render Books ---
+function renderBooks(books){
+    bookGrid.innerHTML = "";
+    if(books.length===0) return bookGrid.innerHTML="<p style='opacity:0.6'>No books found</p>";
+    books.forEach(b => {
+        const card = document.createElement('div'); card.className="book-card";
+        card.innerHTML = `
+            <img src="${b.cover}">
+            <div style="font-weight:bold">${b.title}</div>
+            <div style="font-size:0.8rem;color:#666">${b.author}</div>
+            <div style="font-size:0.75rem;color:#444">Owner: ${b.ownerName}</div>
+            <div class="status-badge ${b.status}">
+  ${
+    b.status === "loaned"
+      ? "Loaned to " + b.borrowerName
+      : b.status === "returned"
+        ? b.borrowerName + " requesting return"
+        : b.status === "reserved"
+          ? b.borrowerName + " has reserved"
+          : b.status.charAt(0).toUpperCase() + b.status.slice(1)
+  }
+</div>
+        `;
+
+        if(currentUser){
+            // Borrower actions
+            if(b.status==="available" && b.ownerId!==currentUser.uid){
+                const reserveBtn = document.createElement('button');
+                reserveBtn.className="btn btn-primary"; reserveBtn.innerText="Reserve";
+                reserveBtn.onclick = async () => {
+                    await updateDoc(doc(db,"books",b.id), {
+                        status:"reserved",
+                        borrowerId: currentUser.uid,
+                        borrowerName: currentUser.displayName
+                    });
+                }; card.appendChild(reserveBtn);
+            }
+            if(b.status==="reserved" && b.borrowerId===currentUser.uid){
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className="btn btn-danger"; cancelBtn.innerText="Cancel Reserve";
+                cancelBtn.onclick = async () => {
+                    await updateDoc(doc(db,"books",b.id), {
+                        status:"available",
+                        borrowerId:"",
+                        borrowerName:""
+                    });
+                }; card.appendChild(cancelBtn);
+            }
+            if(b.status==="loaned" && b.borrowerId===currentUser.uid){
+                const returnBtn = document.createElement('button');
+                returnBtn.className="btn btn-success"; returnBtn.innerText="Return";
+                returnBtn.onclick = async () => {
+                    await updateDoc(doc(db,"books",b.id), { status: "returned" });
+                }; card.appendChild(returnBtn);
+            }
+
+            // Owner actions
+            if(b.ownerId===currentUser.uid){
+                if(b.status==="reserved"){
+                    const lendBtn = document.createElement('button');
+                    lendBtn.className="btn btn-success"; lendBtn.innerText="Mark as Loaned";
+                    lendBtn.onclick = async () => {
+                        await updateDoc(doc(db,"books",b.id), { status:"loaned" });
+                    }; card.appendChild(lendBtn);
+                }
+                if(b.status === "returned"){
+                     const confirmReturnBtn = document.createElement('button');
+                      confirmReturnBtn.className = "btn btn-primary";
+                      confirmReturnBtn.innerText = "Confirm Return";
+                          confirmReturnBtn.onclick = async () => {
+                  await updateDoc(doc(db,"books",b.id), {
+                         status: "available",
+                         borrowerId: "",
+                             borrowerName: "",
+                   dueDate: null
+        });
+    };
+    card.appendChild(confirmReturnBtn);
+}
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className="btn btn-danger"; deleteBtn.innerText="Remove";
+                deleteBtn.onclick = async () => {
+                    if(confirm("Delete this book?")) await deleteDoc(doc(db,"books",b.id));
+                }; card.appendChild(deleteBtn);
+            }
+        }
+        bookGrid.appendChild(card);
+    });
+}
+
+// --- Profile Page ---
+function renderMyBooks(){
+    if(!currentUser) return myBooksGrid.innerHTML="<p style='opacity:0.6'>Login to see your books</p>";
+    const myBooks = allBooks.filter(b => b.ownerId===currentUser.uid || b.borrowerId===currentUser.uid);
+    myBooksGrid.innerHTML = "";
+    if(myBooks.length===0) return myBooksGrid.innerHTML="<p style='opacity:0.6'>You haven't added or borrowed any books yet</p>";
+    
+    myBooks.forEach(b=>{
+        const card = document.createElement('div'); 
+        card.className="book-card";
+        card.innerHTML = `
+            <img src="${b.cover}">
+            <div style="font-weight:bold">${b.title}</div>
+            <div style="font-size:0.8rem;color:#666">${b.author}</div>
+            <div style="font-size:0.75rem;color:#444">Owner: ${b.ownerName}</div>
+            <div class="status-badge ${b.status}">
+    ${b.status === "loaned" ? "Loaned to " + b.borrowerName : b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+</div>
+        `;
+
+        // Add remove button if current user is the owner
+        if(b.ownerId === currentUser.uid){
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = "btn btn-danger";
+            deleteBtn.innerText = "Remove";
+            deleteBtn.onclick = async () => {
+                if(confirm("Delete this book?")) await deleteDoc(doc(db,"books",b.id));
+            };
+            card.appendChild(deleteBtn);
+        }
+
+        myBooksGrid.appendChild(card);
+    });
+}
+
+// --- Navigation ---
+document.querySelectorAll('nav a').forEach(a=>{
+    a.onclick = () => {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('nav a').forEach(lnk => lnk.classList.remove('active'));
+        document.getElementById(a.dataset.sec).classList.add('active');
+        a.classList.add('active');
+    };
+});
+// --- Book Modal (Popup) ---
+const modal = document.createElement("div");
+modal.style.position = "fixed";
+modal.style.top = 0;
+modal.style.left = 0;
+modal.style.width = "100%";
+modal.style.height = "100%";
+modal.style.background = "rgba(0,0,0,0.6)";
+modal.style.display = "none";
+modal.style.alignItems = "center";
+modal.style.justifyContent = "center";
+modal.style.zIndex = "9999";
+
+modal.innerHTML = `
+  <div style="background:white; padding:20px; border-radius:12px; max-width:600px; width:90%; display:flex; gap:20px; position:relative;">
+    <button id="closeModal" style="position:absolute; top:10px; right:10px; border:none; background:#ef4444; color:white; padding:5px 10px; border-radius:6px; cursor:pointer;">X</button>
+    <img id="modalCover" src="" style="width:150px; height:220px; object-fit:contain;">
+    <div>
+      <h3 id="modalTitle"></h3>
+      <p id="modalAuthor" style="color:#666;"></p>
+      <p id="modalSummary" style="font-size:0.9rem;"></p>
+    </div>
+  </div>
+`;
+document.body.appendChild(modal);
+
+// Close modal
+document.addEventListener("click", (e) => {
+  if (e.target.id === "closeModal" || e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
+// --- Fetch summary from Open Library ---
+
+function cleanSummary(text) {
+    if (!text) return "";
+
+    return text
+        .replace(/\[.*?\]\[\d+\]/g, "")   // [text][1]
+        .replace(/\[\d+\]:/g, "")         // [1]:
+        .replace(/\[.*?\]\(.*?\)/g, "")   // markdown links
+        .replace(/https?:\/\/\S+/g, "")   // URLs
+        .replace(/See also:.*/i, "")      // "See also"
+        .replace(/-+\s?.*/g, "")          // dashed junk lines
+        
+        // 🔥 THIS IS THE FIX YOU NEED
+        .replace(/\([^)]*\)/g, "")        // removes ALL (...) junk
+
+        .replace(/\s+/g, " ")             // clean spacing
+        .trim();
+}
+async function fetchSummary(title) {
+  try {
+    const res = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}`);
+    const data = await res.json();
+
+    if (data.docs && data.docs.length > 0) {
+      const workKey = data.docs[0].key; // e.g. /works/OL123W
+      const workRes = await fetch(`https://openlibrary.org${workKey}.json`);
+      const workData = await workRes.json();
+const raw =
+  typeof workData.description === "string"
+    ? workData.description
+    : workData.description.value;
+
+return cleanSummary(raw);
+    }
+    return "No summary found.";
+  } catch (err) {
+    console.error(err);
+    return "Error loading summary.";
+  }
+}
+
+// --- Add click event to books (NO CHANGES to existing render code) ---
+document.addEventListener("click", async (e) => {
+  const card = e.target.closest(".book-card");
+  if (!card) return;
+
+  const title = card.querySelector("div:nth-child(2)")?.innerText;
+  const author = card.querySelector("div:nth-child(3)")?.innerText;
+  const cover = card.querySelector("img")?.src;
+
+  if (!title) return;
+
+  // Fill modal immediately
+  document.getElementById("modalTitle").innerText = title;
+  document.getElementById("modalAuthor").innerText = author;
+  document.getElementById("modalCover").src = cover;
+  document.getElementById("modalSummary").innerText = "Loading summary...";
+
+  modal.style.display = "flex";
+
+  // Fetch summary
+  const summary = await fetchSummary(title);
+  document.getElementById("modalSummary").innerText = summary;
+});
+</script>
+</body>
+</html>
