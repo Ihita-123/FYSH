@@ -7,10 +7,10 @@
 <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
 <style>
 :root {
-    /* The "Midnight" Palette */
+    /*colours*/
     --bg-dark: #090a0c;
     --card-bg: #14171c;
-    --modal-bg: #0a0b0d; /* Even darker for pop-ups */
+    --modal-bg: #0a0b0d; 
     --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     --text-main: #f8fafc;
     --text-dim: #94a3b8;
@@ -18,13 +18,11 @@
     --glass: rgba(255, 255, 255, 0.03);
     --text-3: rgba(0, 0, 0, 0);
     
-    /* Semantic Colors for Statuses */
     --available-color: #4ade80;
     --reserved-color: #fbbf24;
     --loaned-color: #f87171;
     --returned-color: #818cf8;
 
-    /* Original Button Colors (Kept as requested) */
     --primary: #24175b; 
     --secondary: #24175b; 
     --danger: #510404; 
@@ -40,7 +38,6 @@ body {
     overflow-x: hidden;
 }
 
-/* 1. PAGE-TO-PAGE TRANSITION LOGIC */
 .section {
     display: none;
     opacity: 0;
@@ -60,7 +57,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Header & Navigation Styling */
 header {
     padding: 2rem 1rem;
     text-align: center;
@@ -99,7 +95,6 @@ nav a.active {
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
-/* Main Layout & Grid */
 main { max-width: 1100px; margin: 0 auto; padding: 20px; }
 
 .book-grid {
@@ -108,7 +103,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
     gap: 25px;
 }
 
-/* 2. CARD MOVEMENT (Lift effect) */
 .book-card {
     background: var(--card-bg);
     padding: 20px;
@@ -132,7 +126,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 20px; }
     margin-bottom: 15px;
 }
 
-/* Inputs & Buttons */
 input {
     width: 100%;
     padding: 14px;
@@ -159,7 +152,6 @@ input {
 .btn-success { background: var(--secondary); color: white; margin-top: 10px; }
 .btn-danger { background: var(--danger); color: white; margin-top: 5px; }
 
-/* Status Badges */
 .status-badge {
     padding: 5px 12px;
     border-radius: 20px;
@@ -174,7 +166,6 @@ input {
 .loaned { color: var(--loaned-color); border: 1px solid var(--loaned-color); }
 .returned { color: var(--returned-color); border: 1px solid var(--returned-color); }
 
-/* 3. POP-UP (MODAL) WINDOW - DARK THEME */
 #bookModal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -214,13 +205,12 @@ input {
     cursor: pointer;
 }
 
-/* Custom Scrollbar for the dark theme */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
 #bookModal .modal-content {
-    color: #111; /* makes ALL text visible */
+    color: #111; 
 }
 
 #modalTitle {
@@ -238,27 +228,26 @@ input {
 <body>
 
 <header>
-    <h1>BookShare</h1>
+    <h1>Find YourShelf</h1>
     <nav>
-        <a href="#" class="active" data-sec="home">Browse</a>
-        <a href="#" data-sec="add">Add Book</a>
-        <a href="#" data-sec="profile">My Books</a>
+        <a href="#" class="active" data-sec="home">BROWSE</a>
+        <a href="#" data-sec="add">ADD BOOKS</a>
+        <a href="#" data-sec="profile">MY BOOKS</a>
     </nav>
 </header>
 
-<button id="logoutBtn" class="btn btn-danger" style="display:none">Logout</button>
+<button id="logoutBtn" class="btn btn-danger" style="display:none">LOGOUT</button>
 <div id="userGreeting" style="margin-top:10px; font-weight:bold;"></div>
 
 <main>
     <button id="loginBtn" class="btn btn-primary">Login with Google</button>
 
-    <!-- Browse -->
     <section class="section active" id="home">
         <input type="text" id="searchInput" placeholder="Search title, author...">
         <div class="book-grid" id="bookGrid"></div>
     </section>
 
-    <!-- Add Book -->
+   
     <section class="section" id="add">
         <h2>List a New Book</h2>
         <p>Enter ISBN to auto-fill, or type details manually.</p>
@@ -274,7 +263,6 @@ input {
         </div>
     </section>
 
-    <!-- Profile -->
     <section class="section" id="profile">
         <h2>My Books</h2>
         <div class="book-grid" id="myBooksGrid"></div>
@@ -285,7 +273,6 @@ input {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-// --- Search Logic ---
 document.getElementById('searchInput').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     const filtered = allBooks.filter(b => 
@@ -295,7 +282,6 @@ document.getElementById('searchInput').oninput = (e) => {
     renderBooks(filtered);
 };
 
-// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAGm1vgLa62ZOvgxIU-04f6YH-NLdedCiY",
   authDomain: "book-share-89d92.firebaseapp.com",
@@ -312,7 +298,6 @@ const provider = new GoogleAuthProvider();
 let currentUser = null;
 let allBooks = [];
 
-// --- Auth ---
 document.getElementById('loginBtn').onclick = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
@@ -341,7 +326,7 @@ onAuthStateChanged(auth, (user) => {
     renderMyBooks();
 });
 
-// --- Fetch OpenLibrary ---
+//search
 document.getElementById('fetchBtn').onclick = async () => {
     const isbn = document.getElementById('isbnInput').value.trim();
     if(!isbn) return alert("Enter ISBN!");
@@ -361,7 +346,7 @@ document.getElementById('fetchBtn').onclick = async () => {
     document.getElementById('apiLoader').style.display = "none";
 };
 
-// --- Save Book ---
+//save
 document.getElementById('saveBtn').onclick = async () => {
     if(!currentUser) return alert("Login first!");
     const title = document.getElementById('titleInput').value.trim();
@@ -386,7 +371,7 @@ document.getElementById('saveBtn').onclick = async () => {
     } catch(e){ console.error(e); alert("Error saving book."); }
 };
 
-// --- Real-time Books ---
+//idk, thank you code makers 
 const bookGrid = document.getElementById('bookGrid');
 const myBooksGrid = document.getElementById('myBooksGrid');
 const booksQuery = query(collection(db,"books"), orderBy("timestamp","desc"));
@@ -398,7 +383,7 @@ onSnapshot(booksQuery, snap => {
     renderMyBooks();
 });
 
-// --- Render Books ---
+//render, dont know
 function renderBooks(books){
     bookGrid.innerHTML = "";
     if(books.length===0) return bookGrid.innerHTML="<p style='opacity:0.6'>No books found</p>";
@@ -423,7 +408,7 @@ function renderBooks(books){
         `;
 
         if(currentUser){
-            // Borrower actions
+            // borrower does this
             if(b.status==="available" && b.ownerId!==currentUser.uid){
                 const reserveBtn = document.createElement('button');
                 reserveBtn.className="btn btn-primary"; reserveBtn.innerText="Reserve";
@@ -454,7 +439,7 @@ function renderBooks(books){
                 }; card.appendChild(returnBtn);
             }
 
-            // Owner actions
+            // Owner does this
             if(b.ownerId===currentUser.uid){
                 if(b.status==="reserved"){
                     const lendBtn = document.createElement('button');
@@ -488,7 +473,7 @@ function renderBooks(books){
     });
 }
 
-// --- Profile Page ---
+// -my profike
 function renderMyBooks(){
     if(!currentUser) return myBooksGrid.innerHTML="<p style='opacity:0.6'>Login to see your books</p>";
     const myBooks = allBooks.filter(b => b.ownerId===currentUser.uid || b.borrowerId===currentUser.uid);
@@ -508,7 +493,7 @@ function renderMyBooks(){
 </div>
         `;
 
-        // Add remove button if current user is the owner
+        
         if(b.ownerId === currentUser.uid){
             const deleteBtn = document.createElement('button');
             deleteBtn.className = "btn btn-danger";
@@ -523,7 +508,7 @@ function renderMyBooks(){
     });
 }
 
-// --- Navigation ---
+
 document.querySelectorAll('nav a').forEach(a=>{
     a.onclick = () => {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -532,7 +517,7 @@ document.querySelectorAll('nav a').forEach(a=>{
         a.classList.add('active');
     };
 });
-// --- Book Modal (Popup) ---
+
 const modal = document.createElement("div");
 modal.style.position = "fixed";
 modal.style.top = 0;
@@ -558,30 +543,29 @@ modal.innerHTML = `
 `;
 document.body.appendChild(modal);
 
-// Close modal
 document.addEventListener("click", (e) => {
   if (e.target.id === "closeModal" || e.target === modal) {
     modal.style.display = "none";
   }
 });
 
-// --- Fetch summary from Open Library ---
+// -SUMMARY VERY PROUD OF THIS
 
 function cleanSummary(text) {
     if (!text) return "";
-
+//fix all the errors
     return text
-        .replace(/\[.*?\]\[\d+\]/g, "")   // [text][1]
-        .replace(/\[\d+\]:/g, "")         // [1]:
-        .replace(/\[.*?\]\(.*?\)/g, "")   // markdown links
-        .replace(/https?:\/\/\S+/g, "")   // URLs
-        .replace(/See also:.*/i, "")      // "See also"
-        .replace(/-+\s?.*/g, "")          // dashed junk lines
+        .replace(/\[.*?\]\[\d+\]/g, "")   
+        .replace(/\[\d+\]:/g, "")         
+        .replace(/\[.*?\]\(.*?\)/g, "")   
+        .replace(/https?:\/\/\S+/g, "")   
+        .replace(/See also:.*/i, "")      
+        .replace(/-+\s?.*/g, "")          
         
-        // 🔥 THIS IS THE FIX YOU NEED
-        .replace(/\([^)]*\)/g, "")        // removes ALL (...) junk
+        
+        .replace(/\([^)]*\)/g, "")        
 
-        .replace(/\s+/g, " ")             // clean spacing
+        .replace(/\s+/g, " ")       
         .trim();
 }
 async function fetchSummary(title) {
@@ -590,7 +574,7 @@ async function fetchSummary(title) {
     const data = await res.json();
 
     if (data.docs && data.docs.length > 0) {
-      const workKey = data.docs[0].key; // e.g. /works/OL123W
+      const workKey = data.docs[0].key; 
       const workRes = await fetch(`https://openlibrary.org${workKey}.json`);
       const workData = await workRes.json();
 const raw =
@@ -607,7 +591,6 @@ return cleanSummary(raw);
   }
 }
 
-// --- Add click event to books (NO CHANGES to existing render code) ---
 document.addEventListener("click", async (e) => {
   const card = e.target.closest(".book-card");
   if (!card) return;
@@ -618,7 +601,6 @@ document.addEventListener("click", async (e) => {
 
   if (!title) return;
 
-  // Fill modal immediately
   document.getElementById("modalTitle").innerText = title;
   document.getElementById("modalAuthor").innerText = author;
   document.getElementById("modalCover").src = cover;
@@ -626,7 +608,6 @@ document.addEventListener("click", async (e) => {
 
   modal.style.display = "flex";
 
-  // Fetch summary
   const summary = await fetchSummary(title);
   document.getElementById("modalSummary").innerText = summary;
 });
